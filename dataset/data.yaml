@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 22
+names: ['A', 'B', 'C', 'D1', 'D2', 'E', 'F', 'G', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
+
+roboflow:
+  workspace: elainesilva
+  project: alfabeto-em-libras-qrvnw
+  version: 6
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/elainesilva/alfabeto-em-libras-qrvnw/dataset/6
