@@ -10,25 +10,9 @@ Este projeto implementa um sistema **completo de detecção em tempo real** de l
 - **⚡ Performance**: Detecção em tempo real via webcam (15-60+ FPS)
 - **🔤 Classes**: 22 letras do alfabeto LIBRAS (A-W, exceto H, J, X, Y, Z)
 
-## 🚀 Como Usar (Modo Simples)
+## 🚀 Como Usar 
 
-### 1️⃣ Instalar Dependências
-```bash
-pip install -r requirements.txt
-```
-
-### 2️⃣ Executar o Sistema
-```bash
-python detector_libras.py
-```
-
-**Pronto!** O sistema irá:
-- ✅ Detectar automaticamente se o modelo foi treinado
-- ✅ Inicializar a webcam
-- ✅ Começar a detectar gestos LIBRAS
-- ✅ Mostrar as letras detectadas na tela
-
-### 3️⃣ Usar o Detector
+### Usar o Detector
 1. **Posicione** sua mão em frente à webcam
 2. **Faça** gestos das letras do alfabeto LIBRAS
 3. **Veja** a detecção em tempo real na tela
@@ -72,9 +56,7 @@ computer-vision/
 ├── 📄 train_model.py            # Script de treinamento
 ├── 📄 sign_language_detector.py # Detector avançado
 ├── 📄 export_model.py           # Exportação de modelos
-├── 📄 run_detector.py           # Execução automatizada
 ├── 📄 requirements.txt          # Dependências Python
-├── 📄 start_detector.bat        # Inicializador Windows
 └── 📄 README.md                # Este arquivo
 ```
 
