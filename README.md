@@ -1,201 +1,261 @@
-# 🤟 Sistema de Detecção de Linguagem de Sinais LIBRAS
+# 🤟 Detector de LIBRAS com YOLOv11n
 
-## 📝 Descrição
+Sistema de detecção de letras do alfabeto em LIBRAS (Linguagem Brasileira de Sinais) usando YOLOv11n.
 
-Este projeto implementa um sistema **completo de detecção em tempo real** de linguagem de sinais brasileira (LIBRAS) usando **YOLOv11n** treinado especificamente para identificar 22 letras do alfabeto através da webcam.
+## 📋 Índice
 
-### ✨ Principais Características
+- [Sobre o Projeto](#sobre-o-projeto)
+- [Estrutura do Projeto](#estrutura-do-projeto)
+- [Requisitos](#requisitos)
+- [Instalação](#instalação)
+- [Como Usar](#como-usar)
+- [Resultados](#resultados)
 
-- **🎯 Modelo**: YOLOv11n otimizado para detecção de gestos LIBRAS
-- **⚡ Performance**: Detecção em tempo real via webcam (15-60+ FPS)
-- **🔤 Classes**: 22 letras do alfabeto LIBRAS (A-W, exceto H, J, X, Y, Z)
+## 🎯 Sobre o Projeto
 
-## 🚀 Como Usar 
+Este projeto treina um modelo YOLOv11n para detectar e classificar 22 letras do alfabeto em LIBRAS a partir de imagens de mãos. O modelo pode ser usado em tempo real com webcam para reconhecimento de sinais.
 
-### Usar o Detector
-1. **Posicione** sua mão em frente à webcam
-2. **Faça** gestos das letras do alfabeto LIBRAS
-3. **Veja** a detecção em tempo real na tela
-4. **Pressione** 'q' ou ESC para sair
+### Classes Detectadas
 
+A, B, C, D1, D2, E, F, G, I, K, L, M, N, O, P, Q, R, S, T, U, V, W (22 classes)
 
-#### 1. Clone ou baixe o projeto
-```bash
-cd computer-vision
-```
-
-#### 2. Crie ambiente virtual (recomendado)
-```bash
-python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# Linux/Mac:
-source .venv/bin/activate
-```
-
-#### 3. Instale dependências
-```bash
-pip install -r requirements.txt
-```
-
-#### 4. Execute o sistema
-```bash
-python detector_libras.py
-```
-
-## � Estrutura do Projeto
+## 📁 Estrutura do Projeto
 
 ```
 computer-vision/
-├── 📂 dataset/                    # Dataset LIBRAS original
-│   ├── 📄 data.yaml              # Configuração das classes
-│   ├── 📂 train/                 # Imagens de treinamento
-│   ├── 📂 valid/                 # Imagens de validação
-│   └── 📂 test/                  # Imagens de teste
-├── 📄 detector_libras.py         # 🎯 SCRIPT PRINCIPAL (usar este!)
-├── 📄 train_model.py            # Script de treinamento
-├── 📄 sign_language_detector.py # Detector avançado
-├── 📄 export_model.py           # Exportação de modelos
-├── 📄 requirements.txt          # Dependências Python
-└── 📄 README.md                # Este arquivo
+├── venv/                      # Ambiente virtual Python
+├── dataset/                   # Dataset com imagens e labels
+│   ├── train/                 # Conjunto de treinamento
+│   ├── valid/                 # Conjunto de validação
+│   ├── test/                  # Conjunto de teste
+│   └── data.yaml             # Configuração original do dataset
+├── config/                    # Arquivos de configuração
+│   └── data.yaml             # Configuração para treinamento
+├── src/                       # Código fonte
+│   ├── train.py              # Script de treinamento
+│   ├── validate.py           # Script de validação
+│   ├── detect_webcam.py      # Detecção em tempo real
+│   └── detect_image.py       # Detecção em imagens
+├── runs/                      # Resultados dos experimentos
+│   ├── train/                # Resultados do treinamento
+│   ├── val/                  # Resultados da validação
+│   └── detect/               # Resultados das detecções
+├── models/                    # Modelos salvos
+└── README.md                 # Este arquivo
 ```
 
-## 🎨 Interface do Usuário
+## 🔧 Requisitos
 
-Durante a execução, você verá:
+- Python 3.8+
+- Webcam (para detecção em tempo real)
+- GPU NVIDIA (opcional, mas recomendado para treinamento mais rápido)
 
-### 📹 Janela Principal
-- **Bounding Boxes**: Retângulos coloridos ao redor das mãos
-- **Labels**: Nome da letra + confiança da detecção
-- **Cores**: Verde (alta confiança), Amarelo (média), Laranja (baixa)
+### Bibliotecas Python
 
-### 📊 Informações na Tela
-- **FPS**: Frames por segundo em tempo real
-- **Tempo**: Latência de inferência em ms
-- **Detecções**: Número de letras detectadas
+- ultralytics (YOLOv11)
+- opencv-python
+- numpy
+- matplotlib
+- pillow
 
-### 🎯 Destaque das Letras
-- **Parte Inferior**: Letras detectadas em destaque amarelo
-- **Formato**: "LETRAS: A | B | C"
+## 🚀 Instalação
 
-### ⌨️ Controles
-- **'q'**: Sair do programa
-- **ESC**: Sair do programa
+### 1. Criar e ativar ambiente virtual
 
-## � Classes Detectadas
+**Windows PowerShell:**
 
-| ID | Letra | ID | Letra | ID | Letra | ID | Letra |
-|----|-------|----| ------|----| ------|----| ------|
-| 0  | A     | 6  | F     | 12 | N     | 18 | T     |
-| 1  | B     | 7  | G     | 13 | O     | 19 | U     |
-| 2  | C     | 8  | I     | 14 | P     | 20 | V     |
-| 3  | D1    | 9  | K     | 15 | Q     | 21 | W     |
-| 4  | D2    | 10 | L     | 16 | R     |    |       |
-| 5  | E     | 11 | M     | 17 | S     |    |       |
-
-**Nota**: D1 e D2 são variações da letra D em LIBRAS.
-
-## ⚙️ Configurações Avançadas
-
-### Ajustar Sensibilidade
-No arquivo `detector_libras.py`, linha ~25:
-```python
-detector = LibrasDetector(model_path, conf_threshold=0.5)
-```
-- **0.3**: Mais sensível (mais detecções, menos precisas)
-- **0.7**: Menos sensível (menos detecções, mais precisas)
-
-### Modificar Resolução da Webcam
-Linhas ~120-121:
-```python
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)   # Largura
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)   # Altura
+```powershell
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 ```
 
-## � Treinamento Personalizado
+**Linux/Mac:**
 
-### Para treinar com seus próprios dados:
-
-#### 1. Preparar Dataset
-- Organize imagens em `train/`, `valid/`, `test/`
-- Crie labels em formato YOLO (.txt)
-- Atualize `data.yaml` com suas classes
-
-#### 2. Treinar Modelo
 ```bash
-python train_model.py
+python3 -m venv venv
+source venv/bin/activate
 ```
 
-#### 3. Usar Novo Modelo
-O modelo treinado será salvo como `best.pt` e usado automaticamente.
+### 2. Instalar dependências
 
-## � Solução de Problemas
-
-### ❌ "Modelo não encontrado"
-**Solução**: Execute `python train_model.py` primeiro
-
-### ❌ "Webcam não encontrada"
-**Soluções**:
-- Verifique se a webcam está conectada
-- Teste com outras aplicações (Skype, Teams)
-- Mude o índice da câmera: `cv2.VideoCapture(1)`
-
-
-### ❌ Detecções incorretas
-**Soluções**:
-- Melhore iluminação
-- Aumente `conf_threshold` para 0.7
-- Faça gestos mais claros
-
-### ❌ "Import Error"
-**Solução**: Reinstale dependências
-```bash
-pip install --upgrade ultralytics opencv-python numpy
+```powershell
+pip install ultralytics opencv-python numpy matplotlib pillow
 ```
 
-## � Como Funciona (Explicação Técnica)
+## 💻 Como Usar
 
-### 🧠 Arquitetura YOLOv11n
-1. **Backbone**: CSPDarknet otimizado para eficiência
-2. **Neck**: Feature Pyramid Network (FPN) para multi-escala
-3. **Head**: Detecção de objetos com classificação simultânea
+### 1. Treinar o Modelo
 
-### 🔄 Pipeline de Processamento
-1. **Captura**: Frame da webcam (BGR, 1280x720)
-2. **Pré-processamento**: Resize para 640x640, normalização
-3. **Inferência**: Modelo produz 8400 predições por imagem
-4. **Pós-processamento**: NMS, filtragem por confiança
-5. **Visualização**: Desenho de bounding boxes e labels
+Execute o script de treinamento:
 
-### 📊 Formato das Detecções
-```python
-detection = {
-    'letter': 'A',           # Letra detectada
-    'confidence': 0.85,      # Confiança (0-1)
-    'bbox': (x1, y1, x2, y2) # Coordenadas da caixa
-}
+```powershell
+python src/train.py
 ```
 
-### ⚡ Otimizações Implementadas
-- **Inferência eficiente**: Modelo compacto (2.6M parâmetros)
-- **Pré-processamento otimizado**: OpenCV acelerado
-- **NMS otimizada**: Remoção de detecções duplicadas
-- **Visualização rápida**: Desenho direto no frame
+**Parâmetros de treinamento (editáveis no código):**
 
-## 📚 Dataset e Treinamento
+- `epochs`: 100 (número de épocas)
+- `batch`: 16 (tamanho do batch)
+- `imgsz`: 640 (tamanho da imagem)
+- `device`: 'cpu' (use 0 para GPU)
 
-### 📂 Dataset LIBRAS
-- **Fonte**: Elaine Silva - Alfabeto em LIBRAS
-- **Licença**: CC BY 4.0
-- **Imagens**: ~1000 imagens anotadas
-- **Divisão**: 70% treino, 20% validação, 10% teste
+**O que acontece:**
 
-### 🎯 Configurações de Treinamento
-```python
-# Parâmetros utilizados
-epochs = 100           # Número de épocas
-batch_size = 16        # Tamanho do batch
-img_size = 640         # Resolução de entrada
-patience = 20          # Early stopping
-device = 'cpu'         # CPU/CUDA
+- Download automático do modelo YOLOv11n pré-treinado
+- Treinamento com early stopping (patience=20)
+- Salvamento de checkpoints e gráficos
+- Resultados em `runs/train/libras_yolo11n/`
+
+**Tempo estimado:**
+
+- CPU: 2-4 horas
+- GPU: 30-60 minutos
+
+### 2. Validar o Modelo
+
+Após o treinamento, valide o modelo:
+
+```powershell
+python src/validate.py
 ```
+
+**Métricas geradas:**
+
+- mAP50 (Mean Average Precision @ IoU 0.5)
+- mAP50-95 (mAP em diferentes IoU thresholds)
+- Precisão e Recall
+- Confusion matrix
+- Gráficos de desempenho
+
+### 3. Detecção em Tempo Real (Webcam)
+
+Use a webcam para detectar letras LIBRAS em tempo real:
+
+```powershell
+python src/detect_webcam.py
+```
+
+**Controles:**
+
+- `Q`: Sair
+- `S`: Salvar frame atual
+- `+`: Aumentar threshold de confiança
+- `-`: Diminuir threshold de confiança
+
+**Dicas para melhor detecção:**
+
+- Use boa iluminação
+- Mantenha a mão centralizada
+- Fundo neutro ajuda
+- Distância de ~50cm da câmera
+
+### 4. Detecção em Imagens
+
+Testar o modelo em imagens específicas:
+
+```powershell
+# Processar todas as imagens de teste
+python src/detect_image.py
+
+# Processar uma imagem específica
+python src/detect_image.py --image "caminho/para/imagem.jpg"
+
+# Ajustar confiança
+python src/detect_image.py --conf 0.7
+
+# Ver todas as opções
+python src/detect_image.py --help
+```
+
+## 📊 Resultados
+
+Após o treinamento, você encontrará:
+
+### Em `runs/train/libras_yolo11n/`:
+
+- `weights/best.pt` - Melhor modelo
+- `weights/last.pt` - Último checkpoint
+- `results.png` - Gráficos de métricas
+- `confusion_matrix.png` - Matriz de confusão
+- `F1_curve.png`, `PR_curve.png` - Curvas de desempenho
+
+### Em `runs/val/`:
+
+- Resultados da validação no conjunto de teste
+- Métricas detalhadas por classe
+
+### Em `runs/detect/`:
+
+- Imagens com detecções
+- Predições salvas
+
+## 🎓 Interpretando os Resultados
+
+### mAP (Mean Average Precision)
+
+- **mAP50**: Precisão média com IoU > 0.5
+  - > 0.9: Excelente
+  - 0.7-0.9: Bom
+  - < 0.7: Precisa melhorar
+
+### Precisão vs Recall
+
+- **Precisão alta**: Poucas detecções falsas
+- **Recall alto**: Detecta a maioria dos objetos
+- Ideal: Ambos altos
+
+### Confusion Matrix
+
+- Diagonal: Classificações corretas
+- Fora da diagonal: Confusões entre classes
+
+## 🔍 Troubleshooting
+
+### Erro: "Modelo não encontrado"
+
+→ Execute `train.py` primeiro para treinar o modelo
+
+### Erro: "Não foi possível abrir a webcam"
+
+→ Verifique se a webcam está conectada e funcionando
+→ Teste com outros aplicativos (Camera, etc.)
+
+### Treinamento muito lento
+
+→ Use GPU: mude `device='cpu'` para `device=0` no train.py
+→ Reduza `batch` para 8 ou 4
+→ Reduza `epochs` para testes rápidos
+
+### Baixa precisão
+
+→ Aumente o número de `epochs`
+→ Ajuste `confidence` threshold na detecção
+→ Verifique se o dataset está balanceado
+→ Considere data augmentation
+
+## 🎯 Próximos Passos
+
+1. **Otimizar hiperparâmetros**: Ajuste learning rate, batch size, etc.
+2. **Data augmentation**: Adicione mais variações ao dataset
+3. **Exportar modelo**: Converta para ONNX, TensorFlow Lite para mobile
+4. **Interface gráfica**: Crie uma GUI com Tkinter ou PyQt
+5. **Deploy**: Disponibilize como aplicação web com Flask/FastAPI
+
+## 📚 Referências
+
+- [Ultralytics YOLOv11 Documentation](https://docs.ultralytics.com/)
+- [YOLO Paper](https://arxiv.org/abs/2304.00501)
+- [LIBRAS - Língua Brasileira de Sinais](https://www.gov.br/governodigital/pt-br/acessibilidade-digital/libras)
+
+## 📝 Licença
+
+Dataset: CC BY 4.0 (Roboflow)
+Código: Uso livre para fins educacionais
+
+## 👤 Autor
+
+Nicolas - 2025
+
+---
+
+💡 **Dica**: Comece com um teste rápido (poucos epochs) para garantir que tudo funciona antes de um treinamento completo!
