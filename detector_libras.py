@@ -16,7 +16,9 @@ import cv2
 import numpy as np
 import os
 import time
-from typing import List, Tuple
+from typing import List, Tuple, Dict
+from collections import Counter
+from datetime import datetime
 
 try:
     from ultralytics import YOLO
@@ -113,9 +115,110 @@ class LibrasDetector:
         
         return result_image
 
+
+class PhraseBuilder:
+    """Constrói frases a partir das letras detectadas"""
+    
+    def __init__(self, stability_frames: int = 15, min_confidence: float = 0.7):
+        self.phrase = ""
+        self.candidate_letter = None
+        self.candidate_count = 0
+        self.stability_frames = stability_frames  # Quantos frames seguidos para confirmar
+        self.min_confidence = min_confidence
+        self.last_confirmed_time = 0
+        self.cooldown_time = 1.5  # Segundos de espera após confirmar uma letra
+        self.detection_history = []  # Histórico para votação
+        
+    def update(self, detections: List[Dict]) -> Tuple[str, bool, str]:
+        """
+        Atualiza o construtor de frases com novas detecções
+        
+        Returns:
+            (letra_atual, letra_confirmada, progresso)
+        """
+        current_time = time.time()
+        letra_confirmada = False
+        current_letter = None
+        
+        # Filtrar detecções por confiança
+        valid_detections = [d for d in detections if d['confidence'] >= self.min_confidence]
+        
+        if valid_detections and (current_time - self.last_confirmed_time) >= self.cooldown_time:
+            # Pegar a letra com maior confiança
+            best_detection = max(valid_detections, key=lambda x: x['confidence'])
+            current_letter = best_detection['letter']
+            
+            # Adicionar ao histórico
+            self.detection_history.append(current_letter)
+            if len(self.detection_history) > self.stability_frames:
+                self.detection_history.pop(0)
+            
+            # Verificar estabilidade usando votação
+            if len(self.detection_history) >= self.stability_frames:
+                # Contar ocorrências
+                letter_counts = Counter(self.detection_history)
+                most_common_letter, count = letter_counts.most_common(1)[0]
+                
+                # Se a letra mais comum aparece em pelo menos 80% dos frames
+                if count >= int(self.stability_frames * 0.8):
+                    if most_common_letter != self.candidate_letter:
+                        self.candidate_letter = most_common_letter
+                        self.candidate_count = count
+                    else:
+                        # Letra confirmada!
+                        self.phrase += self.candidate_letter
+                        letra_confirmada = True
+                        self.last_confirmed_time = current_time
+                        self.detection_history.clear()
+                        self.candidate_letter = None
+                        self.candidate_count = 0
+        else:
+            # Sem detecções válidas, resetar histórico
+            if not valid_detections:
+                self.detection_history.clear()
+                self.candidate_letter = None
+        
+        # Calcular progresso
+        progress = ""
+        if self.candidate_letter and len(self.detection_history) > 0:
+            progress_pct = int((len(self.detection_history) / self.stability_frames) * 100)
+            progress = f"{self.candidate_letter} [{progress_pct}%]"
+        
+        return current_letter, letra_confirmada, progress
+    
+    def add_space(self):
+        """Adiciona um espaço à frase"""
+        if self.phrase and not self.phrase.endswith(" "):
+            self.phrase += " "
+    
+    def backspace(self):
+        """Remove o último caractere"""
+        if self.phrase:
+            self.phrase = self.phrase[:-1]
+    
+    def clear(self):
+        """Limpa a frase inteira"""
+        self.phrase = ""
+        self.detection_history.clear()
+        self.candidate_letter = None
+    
+    def save_to_file(self, filename: str = None) -> str:
+        """Salva a frase em um arquivo"""
+        if not filename:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"frase_libras_{timestamp}.txt"
+        
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(self.phrase)
+        
+        return filename
+
 def main():
     """Função principal"""
     
+    print("=" * 60)
+    print("🤟 DETECTOR DE LIBRAS - CONSTRUTOR DE FRASES")
+    print("=" * 60)
     
     # Encontrar modelo
     model_paths = ["best.pt", "runs/detect/train/weights/best.pt"]
@@ -127,21 +230,24 @@ def main():
             break
     
     if model_path is None:
-      
-        print(" Execute primeiro: python train_model.py")
+        print("❌ Erro: Modelo não encontrado!")
+        print("Execute primeiro: python train_model.py")
         return
     
     # Inicializar detector
     try:
-        detector = LibrasDetector(model_path)
+        detector = LibrasDetector(model_path, conf_threshold=0.6)
     except Exception as e:
-        print(f" Erro ao carregar modelo: {e}")
+        print(f"❌ Erro ao carregar modelo: {e}")
         return
+    
+    # Inicializar construtor de frases
+    phrase_builder = PhraseBuilder(stability_frames=15, min_confidence=0.7)
     
     # Inicializar webcam
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
-        print(" Erro: Webcam não encontrada!")
+        print("❌ Erro: Webcam não encontrada!")
         return
     
     # Configurar webcam
@@ -150,16 +256,28 @@ def main():
     
     print("✓ Webcam conectada")
     print("✓ Sistema pronto!")
-    print("\n📋 INSTRUÇÕES:")
-    print("   • Posicione sua mão em frente à webcam")
-    print("   • Faça gestos das letras LIBRAS")
-    print("   • Pressione 'q' ou ESC para sair")
-   
+    print("\n📋 CONTROLES:")
+    print("   ESPAÇO   - Adicionar espaço")
+    print("   BACKSPACE - Apagar última letra")
+    print("   C        - Limpar frase inteira")
+    print("   S        - Salvar frase em arquivo")
+    print("   Q ou ESC - Sair")
+    print("\n🎯 COMO USAR:")
+    print("   1. Faça o gesto da letra")
+    print("   2. Mantenha o gesto estável por ~1 segundo")
+    print("   3. A letra será adicionada automaticamente")
+    print("=" * 60)
     
     # Variáveis para performance
     fps_counter = 0
     fps_time = time.time()
     fps_display = 0
+    
+    # Variáveis para feedback visual
+    last_confirmed_letter = None
+    confirmation_time = 0
+    show_save_message = False
+    save_message_time = 0
     
     while True:
         ret, frame = cap.read()
@@ -174,6 +292,14 @@ def main():
         detections = detector.detect(frame)
         inference_time = (time.time() - start_time) * 1000
         
+        # Atualizar construtor de frases
+        current_letter, letra_confirmada, progress = phrase_builder.update(detections)
+        
+        # Feedback de confirmação
+        if letra_confirmada:
+            last_confirmed_letter = phrase_builder.phrase[-1] if phrase_builder.phrase else None
+            confirmation_time = time.time()
+        
         # Desenhar detecções
         result_frame = detector.draw_detections(frame, detections)
         
@@ -184,13 +310,13 @@ def main():
             fps_counter = 0
             fps_time = time.time()
         
-        # Informações na tela
+        # ==== INTERFACE NA TELA ====
+        
+        # Informações no topo
         info_y = 30
         info_texts = [
             f"FPS: {fps_display}",
-            f"Tempo: {inference_time:.1f}ms",
             f"Deteccoes: {len(detections)}",
-            "Pressione 'q' para sair"
         ]
         
         for text in info_texts:
@@ -198,38 +324,139 @@ def main():
                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             info_y += 25
         
-        # Letras detectadas em destaque
-        if detections:
-            letters = [det['letter'] for det in detections]
-            letters_text = f"LETRAS: {' | '.join(letters)}"
+        # Área de progresso (lado direito superior)
+        if progress:
+            progress_text = f"Capturando: {progress}"
+            (text_w, text_h), _ = cv2.getTextSize(progress_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)
+            progress_x = result_frame.shape[1] - text_w - 20
             
-            # Posição na parte inferior
-            text_size = cv2.getTextSize(letters_text, cv2.FONT_HERSHEY_SIMPLEX, 1.5, 3)[0]
-            text_x = (result_frame.shape[1] - text_size[0]) // 2
-            text_y = result_frame.shape[0] - 30
-            
-            # Fundo preto para destaque
+            # Fundo laranja para destaque
             cv2.rectangle(result_frame, 
-                         (text_x - 10, text_y - text_size[1] - 10),
-                         (text_x + text_size[0] + 10, text_y + 10),
-                         (0, 0, 0), -1)
+                         (progress_x - 10, 10),
+                         (result_frame.shape[1] - 10, 50),
+                         (0, 165, 255), -1)
             
-            # Texto em amarelo
-            cv2.putText(result_frame, letters_text, (text_x, text_y),
-                       cv2.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 255), 3)
+            cv2.putText(result_frame, progress_text, (progress_x, 35),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        
+        # Feedback de confirmação (flash verde quando confirma)
+        if last_confirmed_letter and (time.time() - confirmation_time) < 0.5:
+            confirm_text = f"✓ {last_confirmed_letter}"
+            (text_w, text_h), _ = cv2.getTextSize(confirm_text, cv2.FONT_HERSHEY_SIMPLEX, 2, 3)
+            confirm_x = (result_frame.shape[1] - text_w) // 2
+            confirm_y = 150
+            
+            # Flash verde
+            cv2.rectangle(result_frame,
+                         (confirm_x - 20, confirm_y - text_h - 20),
+                         (confirm_x + text_w + 20, confirm_y + 20),
+                         (0, 255, 0), -1)
+            
+            cv2.putText(result_frame, confirm_text, (confirm_x, confirm_y),
+                       cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 3)
+        
+        # Área da frase (parte inferior)
+        phrase_area_height = 120
+        phrase_area_y = result_frame.shape[0] - phrase_area_height
+        
+        # Fundo escuro semi-transparente
+        overlay = result_frame.copy()
+        cv2.rectangle(overlay, 
+                     (0, phrase_area_y),
+                     (result_frame.shape[1], result_frame.shape[0]),
+                     (0, 0, 0), -1)
+        cv2.addWeighted(overlay, 0.7, result_frame, 0.3, 0, result_frame)
+        
+        # Label "FRASE:"
+        cv2.putText(result_frame, "FRASE:", (20, phrase_area_y + 30),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (100, 100, 100), 2)
+        
+        # Texto da frase
+        phrase_text = phrase_builder.phrase if phrase_builder.phrase else "(vazia)"
+        
+        # Quebrar texto em múltiplas linhas se necessário
+        max_chars_per_line = 50
+        phrase_lines = []
+        for i in range(0, len(phrase_text), max_chars_per_line):
+            phrase_lines.append(phrase_text[i:i+max_chars_per_line])
+        
+        # Mostrar apenas as últimas 2 linhas
+        phrase_lines = phrase_lines[-2:]
+        
+        phrase_y = phrase_area_y + 70
+        for line in phrase_lines:
+            cv2.putText(result_frame, line, (20, phrase_y),
+                       cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 255), 2)
+            phrase_y += 35
+        
+        # Indicador de contagem de caracteres
+        char_count = f"{len(phrase_builder.phrase)} letras"
+        cv2.putText(result_frame, char_count, (result_frame.shape[1] - 150, phrase_area_y + 30),
+                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (150, 150, 150), 1)
+        
+        # Mensagem de salvamento
+        if show_save_message and (time.time() - save_message_time) < 2.0:
+            save_text = "✓ Frase salva!"
+            (text_w, text_h), _ = cv2.getTextSize(save_text, cv2.FONT_HERSHEY_SIMPLEX, 1, 2)
+            save_x = (result_frame.shape[1] - text_w) // 2
+            save_y = result_frame.shape[0] // 2
+            
+            cv2.rectangle(result_frame,
+                         (save_x - 20, save_y - text_h - 20),
+                         (save_x + text_w + 20, save_y + 20),
+                         (0, 200, 0), -1)
+            
+            cv2.putText(result_frame, save_text, (save_x, save_y),
+                       cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        
+        # Controles na tela (canto inferior direito, acima da área da frase)
+        controls_y = phrase_area_y - 100
+        controls = [
+            "ESPACO=espaco | BACK=apagar",
+            "C=limpar | S=salvar | Q=sair"
+        ]
+        
+        for i, control_text in enumerate(controls):
+            (text_w, text_h), _ = cv2.getTextSize(control_text, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1)
+            cv2.putText(result_frame, control_text, 
+                       (result_frame.shape[1] - text_w - 10, controls_y + i * 20),
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
         
         # Mostrar resultado
-        cv2.imshow(" Detector LIBRAS - YOLOv11", result_frame)
+        cv2.imshow("🤟 Detector LIBRAS - Construtor de Frases", result_frame)
         
         # Verificar teclas
         key = cv2.waitKey(1) & 0xFF
+        
         if key == ord('q') or key == 27:  # 'q' ou ESC
             break
+        elif key == ord(' '):  # ESPAÇO
+            phrase_builder.add_space()
+        elif key == 8:  # BACKSPACE
+            phrase_builder.backspace()
+        elif key == ord('c') or key == ord('C'):  # C para limpar
+            phrase_builder.clear()
+        elif key == ord('s') or key == ord('S'):  # S para salvar
+            if phrase_builder.phrase:
+                filename = phrase_builder.save_to_file()
+                print(f"\n✓ Frase salva em: {filename}")
+                print(f"   Conteúdo: {phrase_builder.phrase}")
+                show_save_message = True
+                save_message_time = time.time()
     
     # Limpeza
     cap.release()
     cv2.destroyAllWindows()
-    print("\n✓ Sistema finalizado!")
+    
+    # Mostrar frase final
+    print("\n" + "=" * 60)
+    print("✓ Sistema finalizado!")
+    if phrase_builder.phrase:
+        print(f"\n📝 Frase final: {phrase_builder.phrase}")
+        print(f"   ({len(phrase_builder.phrase)} caracteres)")
+    else:
+        print("\n(Nenhuma frase foi criada)")
+    print("=" * 60)
    
 
 if __name__ == "__main__":
