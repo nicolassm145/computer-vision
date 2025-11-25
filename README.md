@@ -252,10 +252,4 @@ Após o treinamento, você encontrará:
 Dataset: CC BY 4.0 (Roboflow)
 Código: Uso livre para fins educacionais
 
-## 👤 Autor
-
-Nicolas - 2025
-
 ---
-
-💡 **Dica**: Comece com um teste rápido (poucos epochs) para garantir que tudo funciona antes de um treinamento completo!
