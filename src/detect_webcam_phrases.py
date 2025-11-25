@@ -60,9 +60,6 @@ class PhraseBuilder:
         current_time = time.time()
         
         # Adicionar à história
-        # Converter D1/D2 para D
-        if detected_letter in ["D1", "D2"]:
-            detected_letter = "D"
         if detected_letter and confidence >= self.confidence_threshold:
             self.detection_history.append(detected_letter)
         else:
@@ -115,21 +112,21 @@ class PhraseBuilder:
         """Retorna o estado atual"""
         current_time = time.time()
         
-        # progress = 0.0
-        # if self.detection_start_time and self.current_letter:
-        #     hold_duration = current_time - self.detection_start_time
-        #     progress = min(hold_duration / self.hold_time, 1.0)
+        progress = 0.0
+        if self.detection_start_time and self.current_letter:
+            hold_duration = current_time - self.detection_start_time
+            progress = min(hold_duration / self.hold_time, 1.0)
         
-        # stability = 0.0
-        # if len(self.detection_history) > 0:
-        #     valid_count = sum(1 for x in self.detection_history if x == self.current_letter)
-        #     stability = valid_count / len(self.detection_history)
+        stability = 0.0
+        if len(self.detection_history) > 0:
+            valid_count = sum(1 for x in self.detection_history if x == self.current_letter)
+            stability = valid_count / len(self.detection_history)
         
         return {
             'phrase': self.phrase,
             'current_letter': self.current_letter,
-            # 'progress': progress,
-            # 'stability': stability,
+            'progress': progress,
+            'stability': stability,
             'letter_added': letter_added,
             'in_cooldown': (current_time - self.last_added_time) < self.cooldown
         }
@@ -203,34 +200,34 @@ def draw_ui(frame, state, confidence_threshold, hold_time):
         cv2.putText(frame, letter_text, (20, y_pos), 
                     cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 0), 2)
         
-        # # Barra de progresso
-        # progress = state['progress']
-        # bar_width = 400
-        # bar_height = 30
-        # bar_x = 20
-        # bar_y = y_pos + 15
+        # Barra de progresso
+        progress = state['progress']
+        bar_width = 400
+        bar_height = 30
+        bar_x = 20
+        bar_y = y_pos + 15
         
-        # # Fundo da barra
-        # cv2.rectangle(frame, (bar_x, bar_y), 
-        #              (bar_x + bar_width, bar_y + bar_height), 
-        #              (100, 100, 100), -1)
+        # Fundo da barra
+        cv2.rectangle(frame, (bar_x, bar_y), 
+                     (bar_x + bar_width, bar_y + bar_height), 
+                     (100, 100, 100), -1)
         
-    #    # Progresso
-    #     progress_width = int(bar_width * progress)
-    #     color = (0, 255, 0) if progress >= 1.0 else (0, 165, 255)  # Verde se completo, laranja se em progresso
-    #     cv2.rectangle(frame, (bar_x, bar_y), 
-    #                  (bar_x + progress_width, bar_y + bar_height), 
-    #                  color, -1)
+        # Progresso
+        progress_width = int(bar_width * progress)
+        color = (0, 255, 0) if progress >= 1.0 else (0, 165, 255)  # Verde se completo, laranja se em progresso
+        cv2.rectangle(frame, (bar_x, bar_y), 
+                     (bar_x + progress_width, bar_y + bar_height), 
+                     color, -1)
         
-    #     # Texto do progresso
-    #     progress_text = f"{progress*100:.0f}%"
-    #     cv2.putText(frame, progress_text, (bar_x + bar_width + 10, bar_y + 22), 
-    #                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        # Texto do progresso
+        progress_text = f"{progress*100:.0f}%"
+        cv2.putText(frame, progress_text, (bar_x + bar_width + 10, bar_y + 22), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
         
-    #     # Estabilidade
-    #     stability_text = f"Estabilidade: {state['stability']*100:.0f}%"
-    #     cv2.putText(frame, stability_text, (20, bar_y + bar_height + 25), 
-    #                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+        # Estabilidade
+        stability_text = f"Estabilidade: {state['stability']*100:.0f}%"
+        cv2.putText(frame, stability_text, (20, bar_y + bar_height + 25), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
     
     # Indicador de letra adicionada
     if state['letter_added']:
