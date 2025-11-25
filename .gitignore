@@ -13,42 +13,37 @@ build/
 
 # IDEs
 .vscode/
+
+# Python cache e testes
+.mypy_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+
+# Logs
+*.log
+
 .idea/
 *.swp
 *.swo
 *~
 
-# YOLOv11
-runs/
-wandb/
-*.pt
-*.pth
-*.onnx
-*.engine
-*.mlmodel
-
-# Dataset (descomente se não quiser versionar o dataset)
-# dataset/
-
-# Outputs
-*.jpg
-*.jpeg
-*.png
-*.mp4
-*.avi
-
-# Logs
-*.log
-
 # OS
+
 .DS_Store
 Thumbs.db
 desktop.ini
+
 
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb
 
+
 # Temporary
 *.tmp
+
+# Resultados de treinamento e saída
+runs/
+output/
 *.bak
