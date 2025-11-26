@@ -44,8 +44,8 @@ desktop.ini
 *.tmp
 
 # Resultados de treinamento e saída
-runs/
-output/
+
+
 *.bak
 dataset/train/labels.cache
 dataset/valid/labels.cache
