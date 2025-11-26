@@ -1,13 +1,34 @@
-train: ../train/images
-val: ../valid/images
-test: ../test/images
-
+names:
+- A
+- B
+- C
+- D1
+- D2
+- E
+- F
+- G
+- I
+- K
+- L
+- M
+- N
+- O
+- P
+- Q
+- R
+- S
+- T
+- U
+- V
+- W
 nc: 22
-names: ['A', 'B', 'C', 'D1', 'D2', 'E', 'F', 'G', 'I', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
-
+path: C:\Users\Nicolas\Desktop\computer-vision\dataset
 roboflow:
-  workspace: personal-bu69s
-  project: libras-ih14i
-  version: 5
   license: CC BY 4.0
+  project: libras-ih14i
   url: https://universe.roboflow.com/personal-bu69s/libras-ih14i/dataset/5
+  version: 5
+  workspace: personal-bu69s
+test: test/images
+train: train/images
+val: valid/images

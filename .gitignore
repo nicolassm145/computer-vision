@@ -47,3 +47,5 @@ desktop.ini
 runs/
 output/
 *.bak
+dataset/train/labels.cache
+dataset/valid/labels.cache
