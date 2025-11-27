@@ -1,8 +1,8 @@
 
-Alfabeto em libras - v6 2023-08-15 4:09pm
+Libras - v5 2024-04-30 9:40am
 ==============================
 
-This dataset was exported via roboflow.com on December 23, 2024 at 5:42 PM GMT
+This dataset was exported via roboflow.com on September 23, 2024 at 6:40 PM GMT
 
 Roboflow is an end-to-end computer vision platform that helps you
 * collaborate with your team on computer vision projects
@@ -18,11 +18,9 @@ visit https://github.com/roboflow/notebooks
 To find over 100k other datasets and pre-trained models, visit https://universe.roboflow.com
 
 The dataset includes 1735 images.
-Letras are annotated in YOLOv11 format.
+A are annotated in YOLOv8 format.
 
 The following pre-processing was applied to each image:
-* Auto-orientation of pixel data (with EXIF-orientation stripping)
-* Resize to 640x640 (Stretch)
 
 No image augmentation techniques were applied.
 

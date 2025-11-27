@@ -1,7 +1,29 @@
+# Core dependencies
 ultralytics>=8.0.0
 opencv-python>=4.8.0
-onnxruntime>=1.15.0
 numpy>=1.24.0
-pillow>=9.5.0
+Pillow>=10.0.0
+PyYAML>=6.0
+
+# Optional: For GPU support (CUDA)
+# Uncomment if you have NVIDIA GPU with CUDA
+# torch>=2.0.0
+# torchvision>=0.15.0
+
+# For CPU-only (automatically installed with ultralytics)
 torch>=2.0.0
 torchvision>=0.15.0
+
+# Additional utilities
+matplotlib>=3.7.0
+pandas>=2.0.0
+seaborn>=0.12.0
+tqdm>=4.65.0
+
+# GUI dependencies (included with Python, but listed for reference)
+# tkinter (usually pre-installed with Python)
+
+# Development tools (optional)
+# pytest>=7.4.0
+# black>=23.0.0
+# flake8>=6.0.0

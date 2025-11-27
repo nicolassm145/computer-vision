@@ -1,201 +1,199 @@
-# 🤟 Sistema de Detecção de Linguagem de Sinais LIBRAS
+# Sistema de Reconhecimento de Libras com YOLOv8
 
-## 📝 Descrição
+Sistema completo de reconhecimento de sinais de Libras (Língua Brasileira de Sinais) utilizando YOLOv8, com interface gráfica e construção de frases em tempo real.
 
-Este projeto implementa um sistema **completo de detecção em tempo real** de linguagem de sinais brasileira (LIBRAS) usando **YOLOv11n** treinado especificamente para identificar 22 letras do alfabeto através da webcam.
+## Características
 
-### ✨ Principais Características
+- ✅ **Detecção em tempo real** via webcam
+- ✅ **Interface gráfica intuitiva** com Tkinter
+- ✅ **Construção automática de frases** com sistema de confirmação robusto
+- ✅ **Normalização de sinais** (ex: d1, d2 → D)
+- ✅ **Treinamento customizável** do modelo YOLOv8
+- ✅ **Teste em imagens estáticas**
+- ✅ **Suporte a GPU (CUDA)** para melhor performance
+- ✅ **Atalhos de teclado** para controle rápido
 
-- **🎯 Modelo**: YOLOv11n otimizado para detecção de gestos LIBRAS
-- **⚡ Performance**: Detecção em tempo real via webcam (15-60+ FPS)
-- **🔤 Classes**: 22 letras do alfabeto LIBRAS (A-W, exceto H, J, X, Y, Z)
+## Como Funciona
 
-## 🚀 Como Usar 
+O sistema utiliza um pipeline de detecção e confirmação para garantir que apenas sinais intencionais sejam registrados na frase.
 
-### Usar o Detector
-1. **Posicione** sua mão em frente à webcam
-2. **Faça** gestos das letras do alfabeto LIBRAS
-3. **Veja** a detecção em tempo real na tela
-4. **Pressione** 'q' ou ESC para sair
+1.  **Detecção (YOLOv8)**: O modelo analisa cada frame da webcam e identifica possíveis sinais de mão com uma pontuação de confiança.
+2.  **Buffer de Histórico**: As detecções recentes são armazenadas em um buffer temporário.
+3.  **Validação Temporal**: Para um sinal ser confirmado, ele precisa:
+    *   Ter uma confiança mínima (padrão: 75%).
+    *   Aparecer consistentemente nos últimos segundos (padrão: 15 detecções em 2.5s).
+4.  **Confirmação**: Se o sinal for estável, ele é adicionado à frase. O sistema aguarda um tempo de "resfriamento" (padrão: 8s) ou uma mudança clara de sinal para evitar repetições acidentais.
 
+## Instalação
 
-#### 1. Clone ou baixe o projeto
+### 1. Clone o repositório
 ```bash
-cd computer-vision
+git clone <seu-repositorio>
+cd libras-recognition
 ```
 
-#### 2. Crie ambiente virtual (recomendado)
+### 2. Crie um ambiente virtual (recomendado)
 ```bash
-python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# Linux/Mac:
-source .venv/bin/activate
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# Linux/Mac
+source venv/bin/activate
 ```
 
-#### 3. Instale dependências
+### 3. Instale as dependências
 ```bash
 pip install -r requirements.txt
 ```
 
-#### 4. Execute o sistema
+### 4. (Opcional) Instale suporte a GPU
+Para usar CUDA e acelerar o processamento:
 ```bash
-python detector_libras.py
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 
-## � Estrutura do Projeto
+## Estrutura do Dataset
+
+Organize seu dataset no seguinte formato para treinamento:
 
 ```
-computer-vision/
-├── 📂 dataset/                    # Dataset LIBRAS original
-│   ├── 📄 data.yaml              # Configuração das classes
-│   ├── 📂 train/                 # Imagens de treinamento
-│   ├── 📂 valid/                 # Imagens de validação
-│   └── 📂 test/                  # Imagens de teste
-├── 📄 detector_libras.py         # 🎯 SCRIPT PRINCIPAL (usar este!)
-├── 📄 train_model.py            # Script de treinamento
-├── 📄 sign_language_detector.py # Detector avançado
-├── 📄 export_model.py           # Exportação de modelos
-├── 📄 requirements.txt          # Dependências Python
-└── 📄 README.md                # Este arquivo
+dataset/
+├── data.yaml          # Arquivo de configuração
+├── train/
+│   ├── images/       # Imagens de treino
+│   └── labels/       # Labels YOLO (.txt)
+├── valid/
+│   ├── images/       # Imagens de validação
+│   └── labels/       # Labels YOLO (.txt)
+└── test/ (opcional)
+    ├── images/
+    └── labels/
 ```
 
-## 🎨 Interface do Usuário
+### Exemplo de `data.yaml`
+```yaml
+path: /caminho/completo/para/dataset
+train: train/images
+val: valid/images
+test: test/images  # opcional
 
-Durante a execução, você verá:
-
-### 📹 Janela Principal
-- **Bounding Boxes**: Retângulos coloridos ao redor das mãos
-- **Labels**: Nome da letra + confiança da detecção
-- **Cores**: Verde (alta confiança), Amarelo (média), Laranja (baixa)
-
-### 📊 Informações na Tela
-- **FPS**: Frames por segundo em tempo real
-- **Tempo**: Latência de inferência em ms
-- **Detecções**: Número de letras detectadas
-
-### 🎯 Destaque das Letras
-- **Parte Inferior**: Letras detectadas em destaque amarelo
-- **Formato**: "LETRAS: A | B | C"
-
-### ⌨️ Controles
-- **'q'**: Sair do programa
-- **ESC**: Sair do programa
-
-## � Classes Detectadas
-
-| ID | Letra | ID | Letra | ID | Letra | ID | Letra |
-|----|-------|----| ------|----| ------|----| ------|
-| 0  | A     | 6  | F     | 12 | N     | 18 | T     |
-| 1  | B     | 7  | G     | 13 | O     | 19 | U     |
-| 2  | C     | 8  | I     | 14 | P     | 20 | V     |
-| 3  | D1    | 9  | K     | 15 | Q     | 21 | W     |
-| 4  | D2    | 10 | L     | 16 | R     |    |       |
-| 5  | E     | 11 | M     | 17 | S     |    |       |
-
-**Nota**: D1 e D2 são variações da letra D em LIBRAS.
-
-## ⚙️ Configurações Avançadas
-
-### Ajustar Sensibilidade
-No arquivo `detector_libras.py`, linha ~25:
-```python
-detector = LibrasDetector(model_path, conf_threshold=0.5)
-```
-- **0.3**: Mais sensível (mais detecções, menos precisas)
-- **0.7**: Menos sensível (menos detecções, mais precisas)
-
-### Modificar Resolução da Webcam
-Linhas ~120-121:
-```python
-cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)   # Largura
-cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)   # Altura
+nc: 26  # número de classes
+names: ['A', 'B', 'C', 'D', ...]  # lista de classes
 ```
 
-## � Treinamento Personalizado
+## Uso
 
-### Para treinar com seus próprios dados:
-
-#### 1. Preparar Dataset
-- Organize imagens em `train/`, `valid/`, `test/`
-- Crie labels em formato YOLO (.txt)
-- Atualize `data.yaml` com suas classes
-
-#### 2. Treinar Modelo
+### Interface Gráfica (Recomendado)
+Execute o comando abaixo para abrir a interface principal:
 ```bash
-python train_model.py
+python libras_gui.py
 ```
 
-#### 3. Usar Novo Modelo
-O modelo treinado será salvo como `best.pt` e usado automaticamente.
+**Funcionalidades da GUI:**
+- 📂 **Carregar Modelo**: Selecione seu arquivo `.pt` treinado.
+- ▶️ **Iniciar Câmera**: Começa a detecção em tempo real.
+- 🖼️ **Testar Imagem**: Valide o modelo em arquivos estáticos.
+- **Controles de Texto**: Espaço, Apagar e Limpar.
+- 💾 **Salvar**: Exporta a frase atual para `frases_libras.txt`.
 
-## � Solução de Problemas
+**Atalhos de Teclado:**
+| Tecla | Ação |
+| :--- | :--- |
+| `ESPAÇO` | Adicionar espaço |
+| `BACKSPACE` | Apagar último caractere |
+| `Ctrl+S` | Salvar frase |
+| `Ctrl+L` / `Delete` | Limpar frase |
 
-### ❌ "Modelo não encontrado"
-**Solução**: Execute `python train_model.py` primeiro
-
-### ❌ "Webcam não encontrada"
-**Soluções**:
-- Verifique se a webcam está conectada
-- Teste com outras aplicações (Skype, Teams)
-- Mude o índice da câmera: `cv2.VideoCapture(1)`
-
-
-### ❌ Detecções incorretas
-**Soluções**:
-- Melhore iluminação
-- Aumente `conf_threshold` para 0.7
-- Faça gestos mais claros
-
-### ❌ "Import Error"
-**Solução**: Reinstale dependências
+### Linha de Comando (CLI)
+Para opções avançadas e treinamento via terminal:
 ```bash
-pip install --upgrade ultralytics opencv-python numpy
+python libras_recognition.py
 ```
 
-## � Como Funciona (Explicação Técnica)
+**Menu principal:**
+1. Treinar novo modelo
+2. Validar modelo treinado
+3. Testar em imagem
+4. Reconhecimento em tempo real (webcam)
+5. Sair
 
-### 🧠 Arquitetura YOLOv11n
-1. **Backbone**: CSPDarknet otimizado para eficiência
-2. **Neck**: Feature Pyramid Network (FPN) para multi-escala
-3. **Head**: Detecção de objetos com classificação simultânea
+## Configurações
 
-### 🔄 Pipeline de Processamento
-1. **Captura**: Frame da webcam (BGR, 1280x720)
-2. **Pré-processamento**: Resize para 640x640, normalização
-3. **Inferência**: Modelo produz 8400 predições por imagem
-4. **Pós-processamento**: NMS, filtragem por confiança
-5. **Visualização**: Desenho de bounding boxes e labels
+### Parâmetros de Confirmação (`libras_gui.py`)
+Você pode ajustar a sensibilidade do sistema alterando estas variáveis no código:
 
-### 📊 Formato das Detecções
 ```python
-detection = {
-    'letter': 'A',           # Letra detectada
-    'confidence': 0.85,      # Confiança (0-1)
-    'bbox': (x1, y1, x2, y2) # Coordenadas da caixa
-}
+self.tempo_confirmacao = 8.0        # Segundos para confirmar sinal
+self.deteccoes_necessarias = 15     # Número de detecções necessárias
+self.confianca_minima = 0.75        # Confiança mínima (0-1)
 ```
 
-### ⚡ Otimizações Implementadas
-- **Inferência eficiente**: Modelo compacto (2.6M parâmetros)
-- **Pré-processamento otimizado**: OpenCV acelerado
-- **NMS otimizada**: Remoção de detecções duplicadas
-- **Visualização rápida**: Desenho direto no frame
+### Otimização de Performance
+- **GPU**: Altamente recomendado para uso em tempo real.
+- **Tamanho da Imagem (`imgsz`)**:
+  - `320-416`: Mais rápido, menos preciso (bom para CPU).
+  - `640`: Padrão, bom equilíbrio.
+  - `1280`: Alta precisão, muito lento.
 
-## 📚 Dataset e Treinamento
+## Treinamento
 
-### 📂 Dataset LIBRAS
-- **Fonte**: Elaine Silva - Alfabeto em LIBRAS
-- **Licença**: CC BY 4.0
-- **Imagens**: ~1000 imagens anotadas
-- **Divisão**: 70% treino, 20% validação, 10% teste
+### Parâmetros Recomendados
 
-### 🎯 Configurações de Treinamento
+**Para começar (Rápido):**
 ```python
-# Parâmetros utilizados
-epochs = 100           # Número de épocas
-batch_size = 16        # Tamanho do batch
-img_size = 640         # Resolução de entrada
-patience = 20          # Early stopping
-device = 'cpu'         # CPU/CUDA
+epochs = 100
+batch = 16
+model_size = 'n'  # nano
 ```
+
+**Para produção (Preciso):**
+```python
+epochs = 200-300
+batch = 32
+model_size = 's' ou 'm'  # small/medium
+```
+
+### Modelos Disponíveis
+- `yolov8n.pt` - Nano (Mais rápido)
+- `yolov8s.pt` - Small
+- `yolov8m.pt` - Medium
+- `yolov8l.pt` - Large
+- `yolov8x.pt` - Extra Large (Mais preciso)
+
+## Métricas
+
+O sistema avalia automaticamente:
+- **mAP50**: Precisão Média em IoU=0.5.
+- **mAP50-95**: Métrica mais rigorosa de precisão.
+- **Precisão**: Quantas detecções estavam corretas.
+- **Recall**: Quantos objetos reais foram detectados.
+
+## Saída de Dados
+
+### Frases Salvas
+As frases são salvas em `frases_libras.txt` com timestamp:
+```text
+[2025-01-15 14:30:22] OLA MUNDO
+[2025-01-15 14:32:45] BOM DIA
+```
+
+### Resultados de Treinamento
+Os artefatos de treinamento ficam em `runs/detect/`:
+- `weights/best.pt`: O melhor modelo obtido.
+- `results.png`: Gráficos de perda e métricas.
+- `confusion_matrix.png`: Matriz de confusão.
+
+## Solução de Problemas
+
+| Problema | Solução Possível |
+| :--- | :--- |
+| **Câmera não abre** | Verifique se outro app está usando a câmera. Tente índices 0, 1 ou 2. |
+| **Erro de Memória (OOM)** | Reduza o `batch_size` ou use um modelo menor (`nano`). |
+| **Detecção Instável** | Aumente `deteccoes_necessarias` ou `confianca_minima`. |
+| **GPU não detectada** | Reinstale o PyTorch com suporte a CUDA (veja Instalação). |
+
+---
+
+**Desenvolvido com ❤️ para acessibilidade e inclusão**
