@@ -30,10 +30,10 @@ class LibrasGUI:
         self.tempo_ultimo_sinal = 0
         self.historico_deteccoes = deque(maxlen=15)
         
-        # Configurações (ajustado para demorar mais)
-        self.tempo_confirmacao = 6.0  # Aumentado de 4 para 6 segundos
-        self.deteccoes_necessarias = 12  # Aumentado de 8 para 12 detecções
-        self.confianca_minima = 0.70  # Aumentado de 0.65 para 0.70
+        # Configurações (ajustado para demorar bem mais)
+        self.tempo_confirmacao = 8.0  # Aumentado de 6 para 8 segundos
+        self.deteccoes_necessarias = 15  # Aumentado de 12 para 15 detecções
+        self.confianca_minima = 0.75  # Aumentado de 0.70 para 0.75
         
         self.criar_interface()
         
@@ -109,12 +109,22 @@ class LibrasGUI:
         
         self.label_progresso = tk.Label(
             frame_video,
-            text="0/12 detecções",
+            text="0/15 detecções",
             font=('Arial', 9),
             bg='#1e1e1e',
             fg='white'
         )
         self.label_progresso.pack(pady=2)
+        
+        # Indicador de "PRONTO PARA ADICIONAR"
+        self.label_pronto = tk.Label(
+            frame_video,
+            text="",
+            font=('Arial', 14, 'bold'),
+            bg='#1e1e1e',
+            fg='lime'
+        )
+        self.label_pronto.pack(pady=5)
         
         # Coluna Direita - Controles e Frase
         frame_direita = tk.Frame(frame_principal, bg='#2b2b2b', width=400)
@@ -383,6 +393,23 @@ class LibrasGUI:
                     self.label_progresso.configure(
                         text=f"{progresso}/{self.deteccoes_necessarias} detecções"
                     )
+                    
+                    # Indicador visual de "PRONTO"
+                    if progresso >= self.deteccoes_necessarias:
+                        self.label_pronto.configure(
+                            text="✓ PRONTO PARA ADICIONAR!",
+                            fg='lime'
+                        )
+                    elif progresso >= self.deteccoes_necessarias * 0.6:
+                        self.label_pronto.configure(
+                            text="⏳ QUASE LÁ...",
+                            fg='yellow'
+                        )
+                    else:
+                        self.label_pronto.configure(text="")
+                else:
+                    # Limpa indicadores quando não há detecção
+                    self.label_pronto.configure(text="")
                 
                 # Mostra frame
                 frame_rgb = cv2.cvtColor(annotated_frame, cv2.COLOR_BGR2RGB)
@@ -413,7 +440,7 @@ class LibrasGUI:
         
         sinais_recentes = [
             s for s, c, t in self.historico_deteccoes
-            if tempo_atual - t < 2.0 and c >= self.confianca_minima  # Mudado de 1.5s para 2.0s
+            if tempo_atual - t < 2.5 and c >= self.confianca_minima  # Mudado de 2.0s para 2.5s
         ]
         
         if len(sinais_recentes) >= self.deteccoes_necessarias:
@@ -435,7 +462,7 @@ class LibrasGUI:
         tempo_atual = time.time()
         sinais_recentes = [
             s for s, c, t in self.historico_deteccoes
-            if tempo_atual - t < 2.0 and c >= self.confianca_minima  # Mudado de 1.5s para 2.0s
+            if tempo_atual - t < 2.5 and c >= self.confianca_minima  # Mudado de 2.0s para 2.5s
         ]
         return len(sinais_recentes)
     

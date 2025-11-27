@@ -10,11 +10,14 @@ config/                      # Configurações
 runs/detect/                 # Resultados dos treinamentos
   libras_yolo/               # Experimentos/modelos
   libras_yolo2/              # Experimentos/modelos alternativos
-dataset/                     # Dataset customizado
+archive/                     # Dados originais por classe (A, B, ...)
+  train/, test/, valid/      # Imagens separadas por classe
+dataset/                     # Dataset no formato YOLO
   train/images, labels/      # Imagens e labels de treino
   valid/images, labels/      # Imagens e labels de validação
   test/images, labels/       # Imagens e labels de teste (opcional)
   data.yaml                  # Configuração do dataset
+gerar_labels_archive.py      # Script para gerar labels YOLO a partir do archive
 ```
 
 ## Como usar
@@ -27,10 +30,19 @@ dataset/                     # Dataset customizado
 
    (ou instale manualmente: ultralytics, opencv-python, pyyaml)
 
-2. **Prepare o dataset**
 
-   - Estruture as pastas conforme acima.
-   - Edite o arquivo `data.yaml` com suas classes e caminhos.
+2. **Prepare os dados do archive**
+
+   - Coloque suas imagens nas pastas de classe em `archive/train`, `archive/test`, `archive/valid`.
+   - Se não houver labels, use o script `gerar_labels_archive.py` para gerar labels genéricos (bounding box cobre toda a imagem, útil para classificação simples).
+
+   ```powershell
+   python gerar_labels_archive.py
+   ```
+
+   - Os labels serão criados em `dataset/train/labels`, `dataset/test/labels`, `dataset/valid/labels`.
+   - As imagens devem ser copiadas para `dataset/train/images`, `dataset/test/images`, `dataset/valid/images` (faça isso manualmente ou peça um script).
+   - Edite o arquivo `dataset/data.yaml` com suas classes e caminhos.
 
 3. **Execute o script principal**
 
@@ -66,6 +78,9 @@ dataset/                     # Dataset customizado
 - Para melhor desempenho, utilize GPU (CUDA).
 - O script permite continuar treinamentos anteriores ou iniciar do zero.
 - Para usar outro modelo, informe o caminho desejado no menu.
+- Se você possui labels reais (bounding boxes), coloque-os em `dataset/train/labels` etc. e não use o script de geração automática.
+- Para classificação simples, o script de geração cobre toda a imagem como bounding box.
+- Para detecção, use ferramentas de rotulagem (LabelImg, Roboflow, CVAT) para criar labels precisos.
 
 ---
 
