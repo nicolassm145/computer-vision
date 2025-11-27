@@ -207,32 +207,6 @@ self.deteccoes_necessarias = 10  # Menor = mais rápido
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 ```
 
-## 🤝 Contribuindo
-
-Contribuições são bem-vindas! Áreas de melhoria:
-- Novos sinais e gestos
-- Melhorias na interface
-- Otimizações de performance
-- Documentação adicional
-
-## 📄 Licença
-
-[Adicione sua licença aqui]
-
-## 👥 Autores
-
-Nícolas de Souza Moreira
-Leandro Rocha 
-
-## 🙏 Agradecimentos
-
-- Ultralytics YOLOv8
-- Comunidade de Libras
-- Contribuidores do projeto
-
-## 📞 Contato
-
-[Adicione informações de contato]
 
 ---
 
