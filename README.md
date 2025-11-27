@@ -30,7 +30,6 @@ gerar_labels_archive.py      # Script para gerar labels YOLO a partir do archive
 
    (ou instale manualmente: ultralytics, opencv-python, pyyaml)
 
-
 2. **Prepare os dados do archive**
 
    - Coloque suas imagens nas pastas de classe em `archive/train`, `archive/test`, `archive/valid`.
