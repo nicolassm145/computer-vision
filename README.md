@@ -1,86 +1,239 @@
-# Sistema de Reconhecimento de Libras com YOLOv8
+# 🤟 Sistema de Reconhecimento de Libras com YOLOv8
 
-Este projeto realiza o reconhecimento de sinais de Libras (Língua Brasileira de Sinais) utilizando modelos YOLOv8.
+Sistema completo de reconhecimento de sinais de Libras (Língua Brasileira de Sinais) utilizando YOLOv8, com interface gráfica e construção de frases em tempo real.
 
-## Estrutura do Projeto
+## 📋 Características
+
+- ✅ **Detecção em tempo real** via webcam
+- ✅ **Interface gráfica intuitiva** com Tkinter
+- ✅ **Construção automática de frases** com sistema de confirmação
+- ✅ **Normalização de sinais** (ex: d1, d2 → D)
+- ✅ **Treinamento customizável** do modelo YOLOv8
+- ✅ **Teste em imagens estáticas**
+- ✅ **Suporte a GPU (CUDA)** para melhor performance
+- ✅ **Atalhos de teclado** para controle rápido
+
+## 🚀 Instalação
+
+### 1. Clone o repositório
+```bash
+git clone <seu-repositorio>
+cd libras-recognition
+```
+
+### 2. Crie um ambiente virtual (recomendado)
+```bash
+python -m venv venv
+
+# Windows
+venv\Scripts\activate
+
+# Linux/Mac
+source venv/bin/activate
+```
+
+### 3. Instale as dependências
+```bash
+pip install -r requirements.txt
+```
+
+### 4. (Opcional) Instale suporte a GPU
+Para usar CUDA e acelerar o processamento:
+```bash
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+```
+
+## 📁 Estrutura do Dataset
+
+Organize seu dataset no seguinte formato:
 
 ```
-libras_recognition.py         # Script principal
-config/                      # Configurações
-runs/detect/                 # Resultados dos treinamentos
-  libras_yolo/               # Experimentos/modelos
-  libras_yolo2/              # Experimentos/modelos alternativos
-archive/                     # Dados originais por classe (A, B, ...)
-  train/, test/, valid/      # Imagens separadas por classe
-dataset/                     # Dataset no formato YOLO
-  train/images, labels/      # Imagens e labels de treino
-  valid/images, labels/      # Imagens e labels de validação
-  test/images, labels/       # Imagens e labels de teste (opcional)
-  data.yaml                  # Configuração do dataset
-gerar_labels_archive.py      # Script para gerar labels YOLO a partir do archive
+dataset/
+├── data.yaml          # Arquivo de configuração
+├── train/
+│   ├── images/       # Imagens de treino
+│   └── labels/       # Labels YOLO (.txt)
+├── valid/
+│   ├── images/       # Imagens de validação
+│   └── labels/       # Labels YOLO (.txt)
+└── test/ (opcional)
+    ├── images/
+    └── labels/
 ```
 
-## Como usar
+### Exemplo de data.yaml
+```yaml
+path: /caminho/completo/para/dataset
+train: train/images
+val: valid/images
+test: test/images  # opcional
 
-1. **Instale as dependências**
+nc: 26  # número de classes
+names: ['A', 'B', 'C', 'D', ...]  # lista de classes
+```
 
-   ```powershell
-   pip install -r requirements.txt
-   ```
+## 🎯 Uso
 
-   (ou instale manualmente: ultralytics, opencv-python, pyyaml)
+### Interface Gráfica (Recomendado)
+```bash
+python libras_gui.py
+```
 
-2. **Prepare os dados do archive**
+**Funcionalidades da GUI:**
+- 📂 Carregar modelo treinado
+- ▶️ Iniciar/parar câmera
+- 🖼️ Testar em imagens
+- ⎵ Adicionar espaço entre sinais
+- ⌫ Apagar último caractere
+- 🗑️ Limpar frase completa
+- 💾 Salvar frase em arquivo
 
-   - Coloque suas imagens nas pastas de classe em `archive/train`, `archive/test`, `archive/valid`.
-   - Se não houver labels, use o script `gerar_labels_archive.py` para gerar labels genéricos (bounding box cobre toda a imagem, útil para classificação simples).
+**Atalhos de Teclado:**
+- `ESPAÇO` - Adicionar espaço
+- `BACKSPACE` - Apagar último caractere
+- `Ctrl+S` - Salvar frase
+- `Ctrl+L` ou `Delete` - Limpar frase
 
-   ```powershell
-   python gerar_labels_archive.py
-   ```
+### Linha de Comando
+```bash
+python libras_recognition.py
+```
 
-   - Os labels serão criados em `dataset/train/labels`, `dataset/test/labels`, `dataset/valid/labels`.
-   - As imagens devem ser copiadas para `dataset/train/images`, `dataset/test/images`, `dataset/valid/images` (faça isso manualmente ou peça um script).
-   - Edite o arquivo `dataset/data.yaml` com suas classes e caminhos.
+**Menu principal:**
+1. Treinar novo modelo
+2. Validar modelo treinado
+3. Testar em imagem
+4. Reconhecimento em tempo real (webcam)
+5. Sair
 
-3. **Execute o script principal**
+### Controles da Webcam (Modo CLI)
+- `q` - Sair
+- `s` - Salvar screenshot
+- `c` - Limpar frase
+- `BACKSPACE` - Apagar último caractere
+- `ESPAÇO` - Adicionar espaço
+- `f` - Salvar frase em arquivo
+- `+/-` - Ajustar tamanho de processamento
 
-   ```powershell
-   python libras_recognition.py
-   ```
+## ⚙️ Configurações
 
-4. **Menu de opções**
+### Parâmetros de Confirmação (libras_gui.py)
+```python
+self.tempo_confirmacao = 8.0        # Segundos para confirmar sinal
+self.deteccoes_necessarias = 15     # Número de detecções necessárias
+self.confianca_minima = 0.75        # Confiança mínima (0-1)
+```
 
-   - Treinar novo modelo
-   - Validar modelo treinado
-   - Testar em imagem
-   - Reconhecimento em tempo real (webcam)
-   - Sair
+### Otimização de Performance
+- **GPU**: Muito mais rápido, recomendado para tempo real
+- **CPU**: Funcional mas mais lento
+- **imgsz**: Tamanho da imagem (160-640)
+  - Menor = mais rápido, menos preciso
+  - Maior = mais lento, mais preciso
 
-5. **Escolha entre CPU ou GPU**
-   - O script permite escolher o dispositivo para treino e reconhecimento.
+## 🎓 Treinamento
 
-## Resultados
+### Parâmetros Recomendados
 
-- Os modelos treinados ficam em `runs/detect/libras_yolo/weights/best.pt` ou `runs/detect/libras_yolo2/weights/best.pt`.
-- Resultados de predição são salvos em `runs/detect/predict/`.
+**Para começar:**
+```python
+epochs = 100
+batch = 16
+model_size = 'n'  # nano (mais rápido)
+```
 
-## Requisitos
+**Para melhor precisão:**
+```python
+epochs = 200-300
+batch = 32
+model_size = 's' ou 'm'  # small/medium
+```
 
-- Python 3.8+
-- ultralytics
-- opencv-python
-- pyyaml
+### Modelos Disponíveis
+- `yolov8n.pt` - Nano (mais rápido, menor)
+- `yolov8s.pt` - Small
+- `yolov8m.pt` - Medium
+- `yolov8l.pt` - Large
+- `yolov8x.pt` - Extra Large (mais preciso, maior)
 
-## Observações
+## 📊 Métricas
 
-- Para melhor desempenho, utilize GPU (CUDA).
-- O script permite continuar treinamentos anteriores ou iniciar do zero.
-- Para usar outro modelo, informe o caminho desejado no menu.
-- Se você possui labels reais (bounding boxes), coloque-os em `dataset/train/labels` etc. e não use o script de geração automática.
-- Para classificação simples, o script de geração cobre toda a imagem como bounding box.
-- Para detecção, use ferramentas de rotulagem (LabelImg, Roboflow, CVAT) para criar labels precisos.
+O sistema avalia:
+- **mAP50**: Mean Average Precision em IoU=0.5
+- **mAP50-95**: mAP em IoU de 0.5 a 0.95
+- **Precisão**: Taxa de acertos
+- **Recall**: Taxa de detecção
+
+## 📝 Saída de Dados
+
+### Frases Salvas
+As frases são salvas em `frases_libras.txt`:
+```
+[2025-01-15 14:30:22] OLA MUNDO
+[2025-01-15 14:32:45] BOM DIA
+```
+
+### Resultados de Treinamento
+```
+runs/detect/libras_yolo/
+├── weights/
+│   ├── best.pt       # Melhor modelo
+│   └── last.pt       # Último checkpoint
+├── results.png       # Gráficos de treinamento
+└── confusion_matrix.png
+```
+
+## 🔧 Solução de Problemas
+
+### Câmera não abre
+- Verifique se outra aplicação está usando a câmera
+- Tente mudar `cv2.VideoCapture(0)` para `(1)` ou `(2)`
+
+### Erro de memória durante treinamento
+- Reduza o `batch_size`
+- Use modelo menor (`yolov8n`)
+- Reduza `imgsz`
+
+### Detecções muito rápidas/lentas
+Ajuste os parâmetros:
+```python
+self.tempo_confirmacao = 6.0  # Menor = mais rápido
+self.deteccoes_necessarias = 10  # Menor = mais rápido
+```
+
+### GPU não detectada
+```bash
+# Instale CUDA-enabled PyTorch
+pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+```
+
+## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Áreas de melhoria:
+- Novos sinais e gestos
+- Melhorias na interface
+- Otimizações de performance
+- Documentação adicional
+
+## 📄 Licença
+
+[Adicione sua licença aqui]
+
+## 👥 Autores
+
+Nícolas de Souza Moreira
+Leandro Rocha 
+
+## 🙏 Agradecimentos
+
+- Ultralytics YOLOv8
+- Comunidade de Libras
+- Contribuidores do projeto
+
+## 📞 Contato
+
+[Adicione informações de contato]
 
 ---
 
-Dúvidas ou sugestões? Abra uma issue ou entre em contato!
+**Desenvolvido com ❤️ para acessibilidade e inclusão**
